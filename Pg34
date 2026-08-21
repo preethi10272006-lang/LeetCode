@@ -1,0 +1,76 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Global phone keypad mapping
+const char* PHONE_MAP[] = {
+    "",     // 0
+    "",     // 1
+    "abc",  // 2
+    "def",  // 3
+    "ghi",  // 4
+    "jkl",  // 5
+    "mno",  // 6
+    "pqrs", // 7
+    "tuv",  // 8
+    "wxyz"  // 9
+};
+
+// Backtracking helper function
+void backtrack(const char* digits, int index, char* currentCombination, 
+               char** result, int* resultIndex) {
+    // Base Case: If the current combination length matches the input length
+    if (digits[index] == '\0') {
+        currentCombination[index] = '\0'; // Null-terminate the string
+        result[*resultIndex] = strdup(currentCombination); // Copy string to result
+        (*resultIndex)++;
+        return;
+    }
+
+    // Get letters associated with the current digit
+    int digitValue = digits[index] - '0';
+    const char* letters = PHONE_MAP[digitValue];
+
+    // Loop through all letters for this digit
+    for (int i = 0; letters[i] != '\0'; i++) {
+        currentCombination[index] = letters[i]; // Choose
+        backtrack(digits, index + 1, currentCombination, result, resultIndex); // Explore
+    }
+}
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+char** letterCombinations(char* digits, int* returnSize) {
+    int digitsLen = strlen(digits);
+    
+    // Edge case: empty input string
+    if (digitsLen == 0) {
+        *returnSize = 0;
+        return NULL;
+    }
+
+    // Step 1: Calculate total number of combinations to allocate memory
+    int totalCombinations = 1;
+    for (int i = 0; i < digitsLen; i++) {
+        int digit = digits[i] - '0';
+        totalCombinations *= strlen(PHONE_MAP[digit]);
+    }
+    
+    *returnSize = totalCombinations;
+
+    // Step 2: Allocate memory for result list (array of strings)
+    char** result = (char**)malloc(totalCombinations * sizeof(char*));
+    
+    // FIXED LINE: Typecast changed from (char**) to (char*)
+    char* currentCombination = (char*)malloc((digitsLen + 1) * sizeof(char));
+
+    // Step 3: Run backtracking
+    int resultIndex = 0;
+    backtrack(digits, 0, currentCombination, result, &resultIndex);
+
+    // Free the temporary combination buffer
+    free(currentCombination);
+
+    return result;
+}
