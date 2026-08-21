@@ -1,0 +1,52 @@
+// Built-in memory allocator structure (Implicit warning varama irukka)
+void* malloc(unsigned long size);
+
+// Helper function to perform a fast Insertion Sort
+void sort(int* arr, int size) {
+    for (int i = 1; i < size; i++) {
+        int key = arr[i];
+        int j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j--;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* intersection(int* nums1, int nums1Size, int* nums2, int nums2Size, int* returnSize) {
+    // Step 1: Sort both input arrays in-place
+    sort(nums1, nums1Size);
+    sort(nums2, nums2Size);
+    
+    // Determine maximum possible intersection footprint
+    int maxLimit = (nums1Size < nums2Size) ? nums1Size : nums2Size;
+    int* resultList = (int*)malloc(maxLimit * sizeof(int));
+    
+    int i = 0;
+    int j = 0;
+    int uniqueCount = 0;
+    
+    // Step 2: Linear scanning using matching pointers
+    while (i < nums1Size && j < nums2Size) {
+        if (nums1[i] < nums2[j]) {
+            i++;
+        } else if (nums1[i] > nums2[j]) {
+            j++;
+        } else {
+            // Check boundary to ensure unique additions
+            if (uniqueCount == 0 || resultList[uniqueCount - 1] != nums1[i]) {
+                resultList[uniqueCount] = nums1[i];
+                uniqueCount++;
+            }
+            i++;
+            j++;
+        }
+    }
+    
+    *returnSize = uniqueCount;
+    return resultList;
+}
