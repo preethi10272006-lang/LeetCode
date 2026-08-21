@@ -1,0 +1,51 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* multiply(char* num1, char* num2) {
+    int len1 = strlen(num1);
+    int len2 = strlen(num2);
+    
+    // Handle edge case: if either number is "0", the result is "0"
+    if (strcmp(num1, "0") == 0 || strcmp(num2, "0") == 0) {
+        char* zero = (char*)malloc(2 * sizeof(char));
+        strcpy(zero, "0");
+        return zero;
+    }
+    
+    // The maximum possible length of the product is len1 + len2
+    int maxLen = len1 + len2;
+    int* result = (int*)calloc(maxLen, sizeof(int));
+    
+    // Multiply each digit and store in the result array
+    for (int i = len1 - 1; i >= 0; i--) {
+        for (int j = len2 - 1; j >= 0; j--) {
+            int mul = (num1[i] - '0') * (num2[j] - '0');
+            int sum = mul + result[i + j + 1];
+            
+            result[i + j + 1] = sum % 10; // Store the single digit
+            result[i + j] += sum / 10;    // Carry over to the next left position
+        }
+    }
+    
+    // Convert the integer result array back to a string
+    char* finalStr = (char*)malloc((maxLen + 1) * sizeof(char));
+    int strIdx = 0;
+    int i = 0;
+    
+    // Skip leading zeros
+    while (i < maxLen && result[i] == 0) {
+        i++;
+    }
+    
+    // Fill the final string with digits
+    while (i < maxLen) {
+        finalStr[strIdx++] = result[i++] + '0';
+    }
+    finalStr[strIdx] = '\0'; // Null-terminate the string
+    
+    // Free the temporary integer array
+    free(result);
+    
+    return finalStr;
+}
