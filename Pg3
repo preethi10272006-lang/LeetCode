@@ -1,0 +1,19 @@
+bool validateStackSequences(int* pushed, int pushedSize, int* popped, int poppedSize) {
+    int i = 0; // Acts as the top pointer for our simulated stack in 'pushed'
+    int j = 0; // Pointer for the 'popped' array
+    
+    for (int k = 0; k < pushedSize; k++) {
+        // "Push" the current element onto our simulated stack location
+        pushed[i] = pushed[k];
+        i++;
+        
+        // "Pop" as long as the stack top matches the next popped element
+        while (i > 0 && pushed[i - 1] == popped[j]) {
+            i--; // Decrement stack pointer (pop)
+            j++; // Move to next popped element
+        }
+    }
+    
+    // If the stack is empty, the sequence is valid
+    return i == 0;
+}
