@@ -1,0 +1,15 @@
+#include <stdio.h>
+
+int hammingDistance(int x, int y) {
+    // XOR finds positions where bits differ (1 ^ 0 = 1, 0 ^ 1 = 1)
+    unsigned int xorResult = x ^ y;
+    int distance = 0;
+    
+    // Count the number of set bits (1s) using Brian Kernighan's Algorithm
+    while (xorResult > 0) {
+        xorResult &= (xorResult - 1); // Clears the lowest set bit
+        distance++;
+    }
+    
+    return distance;
+}
