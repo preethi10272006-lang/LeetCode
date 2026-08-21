@@ -1,0 +1,11 @@
+#include <stdbool.h>
+
+bool hasAlternatingBits(int n) {
+    // Shifting n by 1 to the right lines up the opposite bits
+    // If n is 1010, then (n >> 1) is 0101
+    unsigned int x = n ^ (n >> 1);
+    
+    // If bits were alternating, x will now be a sequence of all 1s (e.g., 1111)
+    // Check if x is of the form 2^k - 1 by using the property: x & (x + 1) == 0
+    return (x & (x + 1)) == 0;
+}
