@@ -1,0 +1,96 @@
+// Forward declarations compiler tracking-kaga
+void* malloc(unsigned long size);
+void free(void* ptr);
+
+// DSU structures
+int parent[100001];
+
+int findSet(int i) {
+    if (parent[i] == i)
+        return i;
+    return parent[i] = findSet(parent[i]);
+}
+
+void unionSets(int i, int j) {
+    int root_i = findSet(i);
+    int root_j = findSet(j);
+    if (root_i != root_j) {
+        parent[root_i] = root_j;
+    }
+}
+
+// QuickSort Helper Function
+void quickSort(int* arr, int low, int high) {
+    if (low < high) {
+        int pivot = arr[high];
+        int i = (low - 1);
+        for (int j = low; j <= high - 1; j++) {
+            if (arr[j] < pivot) {
+                i++;
+                int temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+        }
+        int temp = arr[i + 1];
+        arr[i + 1] = arr[high];
+        arr[high] = temp;
+        int pi = i + 1;
+
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+
+// Main Function required by LeetCode / Judge
+int gcdSort(int* nums, int numsSize) {
+    int maxVal = 0;
+    for (int i = 0; i < numsSize; i++) {
+        if (nums[i] > maxVal) {
+            maxVal = nums[i];
+        }
+    }
+
+    // Initialize DSU parent array up to max value
+    for (int i = 0; i <= maxVal; i++) {
+        parent[i] = i;
+    }
+
+    // Sieve and Union elements with their prime factors
+    for (int i = 0; i < numsSize; i++) {
+        int val = nums[i];
+        int temp = val;
+        for (int d = 2; d * d <= temp; d++) {
+            if (temp % d == 0) {
+                unionSets(val, d);
+                while (temp % d == 0) {
+                    temp /= d;
+                }
+            }
+        }
+        if (temp > 1) {
+            unionSets(val, temp);
+        }
+    }
+
+    // Create a copy of nums and sort it
+    int* sortedNums = (int*)malloc(numsSize * sizeof(int));
+    for (int i = 0; i < numsSize; i++) {
+        sortedNums[i] = nums[i];
+    }
+    
+    quickSort(sortedNums, 0, numsSize - 1);
+
+    // Check if the mismatched elements belong to the same component
+    for (int i = 0; i < numsSize; i++) {
+        if (nums[i] != sortedNums[i]) {
+            if (findSet(nums[i]) != findSet(sortedNums[i])) {
+                free(sortedNums);
+                return 0; // false
+            }
+        }
+    }
+
+    free(sortedNums);
+    return 1; // true
+}
