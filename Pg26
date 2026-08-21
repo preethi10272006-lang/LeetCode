@@ -1,0 +1,35 @@
+#include <stdbool.h>  // Fixed: changed stdbool; to stdbool.h
+#include <stddef.h>   // Added for NULL pointer safety
+
+bool isMatch(char* s, char* p) {
+    char* s_ptr = s;
+    char* p_ptr = p;
+    char* s_star = NULL;
+    char* p_star = NULL;
+
+    while (*s_ptr != '\0') {
+        if (*p_ptr == *s_ptr || *p_ptr == '?') {
+            s_ptr++;
+            p_ptr++;
+        }
+        else if (*p_ptr == '*') {
+            p_star = p_ptr;
+            s_star = s_ptr;
+            p_ptr++;
+        }
+        else if (p_star != NULL) {
+            p_ptr = p_star + 1;
+            s_star++;
+            s_ptr = s_star;
+        }
+        else {
+            return false;
+        }
+    }
+
+    while (*p_ptr == '*') {
+        p_ptr++;
+    }
+
+    return *p_ptr == '\0';
+}
