@@ -1,0 +1,64 @@
+#include <stdlib.h>
+#include <stdbool.h>
+
+// Backtracking helper function to build permutations
+void backtrack(int* nums, int numsSize, int** result, int* returnSize, 
+               int* currentPerm, int depth, bool* visited) {
+    // Base Case: If the current path matches the input size, store it
+    if (depth == numsSize) {
+        result[*returnSize] = (int*)malloc(numsSize * sizeof(int));
+        for (int i = 0; i < numsSize; i++) {
+            result[*returnSize][i] = currentPerm[i];
+        }
+        (*returnSize)++;
+        return;
+    }
+
+    for (int i = 0; i < numsSize; i++) {
+        // Skip if this element is already used in the current path
+        if (visited[i]) continue;
+
+        // Make a choice
+        visited[i] = true;
+        currentPerm[depth] = nums[i];
+
+        // Recurse to fill the next position
+        backtrack(nums, numsSize, result, returnSize, currentPerm, depth + 1, visited);
+
+        // Undo choice (Backtrack)
+        visited[i] = false;
+    }
+}
+
+int** permute(int* nums, int numsSize, int* returnSize, int** returnColumnSizes) {
+    *returnSize = 0;
+    if (numsSize == 0) return NULL;
+
+    // 1. Calculate the total number of permutations (N!)
+    int maxPermutations = 1;
+    for (int i = 1; i <= numsSize; i++) {
+        maxPermutations *= i;
+    }
+
+    // 2. Allocate memory for the outer array of results
+    int** result = (int**)malloc(maxPermutations * sizeof(int*));
+    
+    // 3. Temporary tracking buffers
+    bool* visited = (bool*)calloc(numsSize, sizeof(bool));
+    int* currentPerm = (int*)malloc(numsSize * sizeof(int));
+
+    // 4. Start the recursive backtracking process
+    backtrack(nums, numsSize, result, returnSize, currentPerm, 0, visited);
+
+    // 5. Allocate and fill the returnColumnSizes array as required by LeetCode
+    *returnColumnSizes = (int*)malloc((*returnSize) * sizeof(int));
+    for (int i = 0; i < *returnSize; i++) {
+        (*returnColumnSizes)[i] = numsSize;
+    }
+
+    // Clean up temporary local buffers
+    free(visited);
+    free(currentPerm);
+
+    return result;
+}
