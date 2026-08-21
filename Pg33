@@ -1,0 +1,152 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+#define BASE 31
+#define MOD 1000000007
+
+// Structure to store word frequencies in our Hash Table
+typedef struct {
+    long long hash_val;
+    int count;
+} WordFreq;
+
+// Simple custom hash function for strings
+long long compute_hash(const char* str, int len) {
+    long long h = 0;
+    for (int i = 0; i < len; i++) {
+        h = (h * BASE + (str[i] - 'a' + 1)) % MOD;
+    }
+    return h;
+}
+
+// Comparator function for sorting word hashes
+int compare_long_long(const void* a, const void* b) {
+    long long va = *(const long long*)a;
+    long long vb = *(const long long*)b;
+    if (va < vb) return -1;
+    if (va > vb) return 1;
+    return 0;
+}
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* findSubstring(char* s, char** words, int wordsSize, int* returnSize) {
+    *returnSize = 0;
+    if (!s || wordsSize == 0) return NULL;
+
+    int s_len = strlen(s);
+    int word_len = strlen(words[0]);
+    int total_words_len = wordsSize * word_len;
+
+    if (s_len < total_words_len) return NULL;
+
+    // 1. Compute hashes for all input words
+    long long* word_hashes = (long long*)malloc(wordsSize * sizeof(long long));
+    for (int i = 0; i < wordsSize; i++) {
+        word_hashes[i] = compute_hash(words[i], word_len);
+    }
+
+    // Sort hashes to group identical words together and count unique words
+    qsort(word_hashes, wordsSize, sizeof(long long), compare_long_long);
+
+    WordFreq* unique_words = (WordFreq*)malloc(wordsSize * sizeof(WordFreq));
+    int unique_count = 0;
+
+    for (int i = 0; i < wordsSize; i++) {
+        if (i > 0 && word_hashes[i] == word_hashes[i - 1]) {
+            unique_words[unique_count - 1].count++;
+        } else {
+            unique_words[unique_count].hash_val = word_hashes[i];
+            unique_words[unique_count].count = 1;
+            unique_count++;
+        }
+    }
+    free(word_hashes);
+
+    // Dynamic result array allocation
+    int* result = (int*)malloc(s_len * sizeof(int));
+    
+    // Auxiliary array to track current sliding window counts
+    int* curr_counts = (int*)calloc(unique_count, sizeof(int));
+
+    // Precompute all string hashes of length word_len in string `s` to avoid redundant hash computations
+    long long* s_hashes = (long long*)malloc((s_len - word_len + 1) * sizeof(long long));
+    for (int i = 0; i <= s_len - word_len; i++) {
+        s_hashes[i] = compute_hash(s + i, word_len);
+    }
+
+    // 2. Sliding Window optimization
+    // We run the sliding window shift starting from index 0 up to word_len - 1
+    for (int i = 0; i < word_len; i++) {
+        int left = i;
+        int count = 0;
+        memset(curr_counts, 0, unique_count * sizeof(int));
+
+        for (int right = i; right <= s_len - word_len; right += word_len) {
+            long long cur_hash = s_hashes[right];
+            
+            // Find if this hash matches any word in our dictionary using binary search
+            int word_idx = -1;
+            int low = 0, high = unique_count - 1;
+            while (low <= high) {
+                int mid = low + (high - low) / 2;
+                if (unique_words[mid].hash_val == cur_hash) {
+                    word_idx = mid;
+                    break;
+                } else if (unique_words[mid].hash_val < cur_hash) {
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            }
+
+            // If the chunk is a valid word from the list
+            if (word_idx != -1) {
+                curr_counts[word_idx]++;
+                count++;
+
+                // If a word frequency exceeds what is allowed, shrink window from left
+                while (curr_counts[word_idx] > unique_words[word_idx].count) {
+                    long long left_hash = s_hashes[left];
+                    // Find index of left_hash (guaranteed to exist)
+                    int l_idx = 0;
+                    int l_low = 0, l_high = unique_count - 1;
+                    while (l_low <= l_high) {
+                        int mid = l_low + (l_high - l_low) / 2;
+                        if (unique_words[mid].hash_val == left_hash) {
+                            l_idx = mid;
+                            break;
+                        } else if (unique_words[mid].hash_val < left_hash) {
+                            l_low = mid + 1;
+                        } else {
+                            l_high = mid - 1;
+                        }
+                    }
+                    curr_counts[l_idx]--;
+                    count--;
+                    left += word_len;
+                }
+
+                // If all words are matched perfectly inside the window
+                if (count == wordsSize) {
+                    result[(*returnSize)++] = left;
+                }
+            } else {
+                // Invalid chunk encountered: clear the window completely
+                memset(curr_counts, 0, unique_count * sizeof(int));
+                count = 0;
+                left = right + word_len;
+            }
+        }
+    }
+
+    // Clean up memory allocations
+    free(s_hashes);
+    free(curr_counts);
+    free(unique_words);
+
+    return result;
+}
