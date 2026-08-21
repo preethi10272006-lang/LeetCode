@@ -1,0 +1,38 @@
+#include <stdlib.h>
+#include <string.h>
+
+char* convert(char* s, int numRows) {
+    // Edge cases: If numRows is 1 or greater than/equal to string length, 
+    // the zigzag pattern is identical to the original string.
+    int len = strlen(s);
+    if (numRows <= 1 || numRows >= len) {
+        return strdup(s);
+    }
+
+    // Allocate memory for the output string (+1 for the null terminator)
+    char* result = (char*)malloc((len + 1) * sizeof(char));
+    int resultIdx = 0;
+
+    // The full cycle step length for a zigzag pattern of size numRows
+    // For example, if numRows = 3, cycleStep = 2 * 3 - 2 = 4
+    int cycleStep = 2 * numRows - 2;
+
+    // Process row by row
+    for (int i = 0; i < numRows; i++) {
+        for (int j = 0; j + i < len; j += cycleStep) {
+            // 1. Append the main character down the vertical column
+            result[resultIdx++] = s[j + i];
+
+            // 2. Append the diagonal character (inner rows only)
+            // It falls between two vertical jumps at: j + cycleStep - i
+            if (i != 0 && i != numRows - 1 && j + cycleStep - i < len) {
+                result[resultIdx++] = s[j + cycleStep - i];
+            }
+        }
+    }
+
+    // Append the null terminator
+    result[resultIdx] = '\0';
+
+    return result;
+}
