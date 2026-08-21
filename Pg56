@@ -1,0 +1,50 @@
+#include <stdlib.h>
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     struct ListNode *next;
+ * };
+ */
+
+struct ListNode* addTwoNumbers(struct ListNode* l1, struct ListNode* l2) {
+    // 1. Initialize a dummy head node to simplify list building
+    struct ListNode dummy;
+    struct ListNode* tail = &dummy;
+    dummy.next = NULL;
+    
+    int carry = 0;
+
+    // 2. Loop until both lists are exhausted and there is no carry left
+    while (l1 != NULL || l2 != NULL || carry != 0) {
+        int sum = carry;
+
+        // Add value from l1 if available
+        if (l1 != NULL) {
+            sum += l1->val;
+            l1 = l1->next;
+        }
+
+        // Add value from l2 if available
+        if (l2 != NULL) {
+            sum += l2->val;
+            l2 = l2->next;
+        }
+
+        // Calculate the new carry and the digit value to store
+        carry = sum / 10;
+        int digitValue = sum % 10;
+
+        // Allocate memory for the new node and attach it to our list
+        struct ListNode* newNode = (struct ListNode*)malloc(sizeof(struct ListNode));
+        newNode->val = digitValue;
+        newNode->next = NULL;
+
+        tail->next = newNode;
+        tail = newNode;
+    }
+
+    // Return the actual head of the list, skipping the dummy node
+    return dummy.next;
+}
