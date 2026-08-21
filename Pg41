@@ -1,0 +1,132 @@
+#include <stdlib.h>
+
+// 1. Function Prototypes (Idhu thaan unga -Wimplicit-function-declaration error-ai clear pannum)
+int** getSkyline(int** buildings, int buildingsSize, int* buildingsColSize, int* returnSize, int** returnColumnSizes);
+int** divideAndConquer(int** buildings, int start, int end, int* returnSize);
+int** mergeSkylines(int** left, int leftSize, int** right, int rightSize, int* returnSize);
+
+// Helper function to merge two sorted skylines
+int** mergeSkylines(int** left, int leftSize, int** right, int rightSize, int* returnSize) {
+    int** merged = (int**)malloc((leftSize + rightSize) * sizeof(int*));
+    int i = 0, j = 0;
+    int h1 = 0, h2 = 0;
+    int count = 0;
+
+    while (i < leftSize && j < rightSize) {
+        int x = 0;
+        if (left[i][0] < right[j][0]) {
+            x = left[i][0];
+            h1 = left[i][1];
+            i++;
+        } else if (left[i][0] > right[j][0]) {
+            x = right[j][0];
+            h2 = right[j][1];
+            j++;
+        } else {
+            x = left[i][0];
+            h1 = left[i][1];
+            h2 = right[j][1];
+            i++;
+            j++;
+        }
+        
+        int maxH = (h1 > h2) ? h1 : h2;
+        
+        if (count > 0 && merged[count - 1][0] == x) {
+            merged[count - 1][1] = maxH;
+        } else if (count == 0 || merged[count - 1][1] != maxH) {
+            merged[count] = (int*)malloc(2 * sizeof(int));
+            merged[count][0] = x;
+            merged[count][1] = maxH;
+            count++;
+        }
+    }
+
+    while (i < leftSize) {
+        int x = left[i][0];
+        int h = left[i][1];
+        if (count > 0 && merged[count - 1][0] == x) {
+            merged[count - 1][1] = h;
+        } else if (count == 0 || merged[count - 1][1] != h) {
+            merged[count] = (int*)malloc(2 * sizeof(int));
+            merged[count][0] = x;
+            merged[count][1] = h;
+            count++;
+        }
+        i++;
+    }
+
+    while (j < rightSize) {
+        int x = right[j][0];
+        int h = right[j][1];
+        if (count > 0 && merged[count - 1][0] == x) {
+            merged[count - 1][1] = h;
+        } else if (count == 0 || merged[count - 1][1] != h) {
+            merged[count] = (int*)malloc(2 * sizeof(int));
+            merged[count][0] = x;
+            merged[count][1] = h;
+            count++;
+        }
+        j++;
+    }
+
+    *returnSize = count;
+    return merged;
+}
+
+// Divide and Conquer segmentation
+int** divideAndConquer(int** buildings, int start, int end, int* returnSize) {
+    if (start > end) {
+        *returnSize = 0;
+        return NULL;
+    }
+    
+    if (start == end) {
+        int** res = (int**)malloc(2 * sizeof(int*));
+        
+        res[0] = (int*)malloc(2 * sizeof(int));
+        res[0][0] = buildings[start][0];
+        res[0][1] = buildings[start][2];
+        
+        res[1] = (int*)malloc(2 * sizeof(int));
+        res[1][0] = buildings[start][1];
+        res[1][1] = 0;
+        
+        *returnSize = 2;
+        return res;
+    }
+    
+    int mid = start + (end - start) / 2;
+    int leftSize = 0;
+    int rightSize = 0;
+    
+    int** left = divideAndConquer(buildings, start, mid, &leftSize);
+    int** right = divideAndConquer(buildings, mid + 1, end, &rightSize);
+    
+    int** merged = mergeSkylines(left, leftSize, right, rightSize, returnSize);
+    
+    for (int k = 0; k < leftSize; k++) free(left[k]);
+    if (left) free(left);
+    for (int k = 0; k < rightSize; k++) free(right[k]);
+    if (right) free(right);
+    
+    return merged;
+}
+
+// Main execution entry point expected by LeetCode / Judge
+int** getSkyline(int** buildings, int buildingsSize, int* buildingsColSize, int* returnSize, int** returnColumnSizes) {
+    if (buildingsSize == 0) {
+        *returnSize = 0;
+        *returnColumnSizes = NULL;
+        return NULL;
+    }
+    
+    int** result = divideAndConquer(buildings, 0, buildingsSize - 1, returnSize);
+    
+    *returnColumnSizes = (int*)malloc((*returnSize) * sizeof(int));
+    for (int i = 0; i < *returnSize; i++) {
+        (*returnColumnSizes)[i] = 2;
+    }
+    
+    return result;
+}
