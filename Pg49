@@ -1,0 +1,34 @@
+#include <stdlib.h>
+#include <string.h>
+
+char* longestCommonPrefix(char** strs, int strsSize) {
+    // 1. Edge case: If the array is empty, return an empty string
+    if (strsSize == 0 || strs == NULL) {
+        char* empty = (char*)malloc(sizeof(char));
+        empty[0] = '\0';
+        return empty;
+    }
+
+    // 2. Start by copying the first string as our initial prefix base
+    char* prefix = strdup(strs[0]);
+    
+    // 3. Compare the prefix with each subsequent string in the array
+    for (int i = 1; i < strsSize; i++) {
+        int j = 0;
+        
+        // Find the matching character length between the prefix and strs[i]
+        while (prefix[j] != '\0' && strs[i][j] != '\0' && prefix[j] == strs[i][j]) {
+            j++;
+        }
+        
+        // Truncate the prefix at the first mismatch point
+        prefix[j] = '\0';
+        
+        // Optimization: If prefix becomes empty, no common prefix exists
+        if (j == 0) {
+            break;
+        }
+    }
+    
+    return prefix;
+}
