@@ -1,0 +1,75 @@
+#include <stdlib.h>
+#include <stdbool.h>
+
+// Comparison function for qsort to sort elements in ascending order
+int compare(const void* a, const void* b) {
+    return (*(int*)a - *(int*)b);
+}
+
+// Backtracking helper function
+void backtrack(int* nums, int numsSize, int** result, int* returnSize, 
+               int* currentPerm, int depth, bool* visited) {
+    // Base Case: If the current permutation reaches the full size, add it to results
+    if (depth == numsSize) {
+        result[*returnSize] = (int*)malloc(numsSize * sizeof(int));
+        for (int i = 0; i < numsSize; i++) {
+            result[*returnSize][i] = currentPerm[i];
+        }
+        (*returnSize)++;
+        return;
+    }
+
+    for (int i = 0; i < numsSize; i++) {
+        // Skip if the element is already used in the current path
+        if (visited[i]) continue;
+
+        // CRUCIAL STEP TO CHOOSE UNIQUE PERMUTATIONS ONLY:
+        // Skip duplicates: If the current element is identical to the previous one,
+        // and the previous one hasn't been visited yet in this branch, skip it.
+        if (i > 0 && nums[i] == nums[i - 1] && !visited[i - 1]) {
+            continue;
+        }
+
+        // Make choices
+        visited[i] = true;
+        currentPerm[depth] = nums[i];
+
+        // Recurse to build the next depth level
+        backtrack(nums, numsSize, result, returnSize, currentPerm, depth + 1, visited);
+
+        // Undo choices (Backtrack)
+        visited[i] = false;
+    }
+}
+
+int** permuteUnique(int* nums, int numsSize, int* returnSize, int** returnColumnSizes) {
+    *returnSize = 0;
+    if (numsSize == 0) return NULL;
+
+    // 1. Sort the input array to safely track and bypass duplicates
+    qsort(nums, numsSize, sizeof(int), compare);
+
+    // 2. Allocate an initial max upper bound capacity for the unique permutations array
+    // Max permutations for N unique items is N!. Duplicates mean the final size is smaller.
+    int maxPermutations = 1;
+    for (int i = 1; i <= numsSize; i++) maxPermutations *= i;
+
+    int** result = (int**)malloc(maxPermutations * sizeof(int*));
+    bool* visited = (bool*)calloc(numsSize, sizeof(bool));
+    int* currentPerm = (int*)malloc(numsSize * sizeof(int));
+
+    // 3. Initiate the backtracking algorithm
+    backtrack(nums, numsSize, result, returnSize, currentPerm, 0, visited);
+
+    // 4. Allocate dynamic memory for returnColumnSizes as required by LeetCode
+    *returnColumnSizes = (int*)malloc((*returnSize) * sizeof(int));
+    for (int i = 0; i < *returnSize; i++) {
+        (*returnColumnSizes)[i] = numsSize;
+    }
+
+    // Free local operational memory buffers
+    free(visited);
+    free(currentPerm);
+
+    return result;
+}
