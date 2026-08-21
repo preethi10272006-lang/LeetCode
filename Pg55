@@ -1,0 +1,55 @@
+#include <stdlib.h>
+#include <limits.h>
+
+// Helper macro to find maximum and minimum
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+double findMedianSortedArrays(int* nums1, int nums1Size, int* nums2, int nums2Size) {
+    // Ensure nums1 is the smaller array to optimize binary search runtime to O(log(min(m, n)))
+    if (nums1Size > nums2Size) {
+        return findMedianSortedArrays(nums2, nums2Size, nums1, nums1Size);
+    }
+
+    int m = nums1Size;
+    int n = nums2Size;
+    int low = 0;
+    int high = m;
+
+    while (low <= high) {
+        // Partition points for both arrays
+        int partitionX = (low + high) / 2;
+        int partitionY = (m + n + 1) / 2 - partitionX;
+
+        // If partitionX is 0, nothing is on the left side of nums1. Use INT_MIN
+        // If partitionX is m, nothing is on the right side of nums1. Use INT_MAX
+        int maxLeftX = (partitionX == 0) ? INT_MIN : nums1[partitionX - 1];
+        int minRightX = (partitionX == m) ? INT_MAX : nums1[partitionX];
+
+        // Do the same boundary assignments for nums2
+        int maxLeftY = (partitionY == 0) ? INT_MIN : nums2[partitionY - 1];
+        int minRightY = (partitionY == n) ? INT_MAX : nums2[partitionY];
+
+        // Check if we found the correct partition point
+        if (maxLeftX <= minRightY && maxLeftY <= minRightX) {
+            // If the combined array has an odd number of elements
+            if ((m + n) % 2 != 0) {
+                return (double)MAX(maxLeftX, maxLeftY);
+            } 
+            // If the combined array has an even number of elements
+            else {
+                return ((double)MAX(maxLeftX, maxLeftY) + MIN(minRightX, minRightY)) / 2.0;
+            }
+        } 
+        // We are too far right in nums1, move partitionX to the left
+        else if (maxLeftX > minRightY) {
+            high = partitionX - 1;
+        } 
+        // We are too far left in nums1, move partitionX to the right
+        else {
+            low = partitionX + 1;
+        }
+    }
+
+    return 0.0; // Input arrays were not sorted properly or invalid
+}
