@@ -1,0 +1,15 @@
+int findComplement(int num) {
+    // Edge case: if num is 0, its binary representation is "0", so complement is 1
+    if (num == 0) return 1;
+    
+    unsigned int mask = ~0; // Creates a mask of all 1s
+    
+    // Shift the mask left until it aligns with the highest set bit of num
+    while (num & mask) {
+        mask <<= 1;
+    }
+    
+    // ~mask gives 1s exactly where num has its bits
+    // XORing with num flips all those bits
+    return num ^ ~mask;
+}
