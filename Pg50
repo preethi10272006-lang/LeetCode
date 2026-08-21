@@ -1,0 +1,35 @@
+#include <stdlib.h>
+
+// Helper macro to find the minimum of two values
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+int maxArea(int* height, int heightSize) {
+    int left = 0;
+    int right = heightSize - 1;
+    int max_water = 0;
+
+    while (left < right) {
+        // Calculate the width between the two lines
+        int width = right - left;
+        
+        // The container height is limited by the shorter line
+        int current_height = MIN(height[left], height[right]);
+        
+        // Calculate the current area and update max_water if it's larger
+        int current_water = width * current_height;
+        if (current_water > max_water) {
+            max_water = current_water;
+        }
+
+        // Greedy choice: Move the pointer pointing to the shorter line inward.
+        // Moving the longer line will never increase the area because width decreases 
+        // and the height is bounded by the shorter line anyway.
+        if (height[left] < height[right]) {
+            left++;
+        } else {
+            right--;
+        }
+    }
+
+    return max_water;
+}
