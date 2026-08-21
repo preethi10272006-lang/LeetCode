@@ -1,0 +1,31 @@
+int jump(int* nums, int numsSize) {
+    // If the array has only 1 element, you are already at the destination
+    if (numsSize <= 1) {
+        return 0;
+    }
+    
+    int jumps = 0;      // Stores the minimum jumps needed
+    int currentEnd = 0; // The farthest index we can reach with the current number of jumps
+    int farthest = 0;   // The absolute farthest index we can reach from any step inside the current range
+    
+    // Loop through the array (we stop before the last element because once we reach or pass it, we are done)
+    for (int i = 0; i < numsSize - 1; i++) {
+        // Update the maximum reach possible from index 'i'
+        if (i + nums[i] > farthest) {
+            farthest = i + nums[i];
+        }
+        
+        // If we have reached the end of the current jump's range
+        if (i == currentEnd) {
+            jumps++;               // We must take another jump
+            currentEnd = farthest; // Update our boundary to the farthest index found
+            
+            // Optimization: If our current boundary already reaches or exceeds the last index, break early
+            if (currentEnd >= numsSize - 1) {
+                break;
+            }
+        }
+    }
+    
+    return jumps;
+}
