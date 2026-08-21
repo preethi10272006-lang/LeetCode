@@ -1,0 +1,25 @@
+#include <stdio.h>
+
+int totalHammingDistance(int* nums, int numsSize) {
+    int totalDistance = 0;
+    
+    // Scan through each of the 32 bit positions
+    for (int i = 0; i < 30; i++) {
+        int countOnes = 0;
+        
+        // Count how many numbers have the i-th bit set to 1
+        for (int j = 0; j < numsSize; j++) {
+            if ((nums[j] >> i) & 1) {
+                countOnes++;
+            }
+        }
+        
+        // Numbers with 0 at the i-th bit position
+        int countZeros = numsSize - countOnes;
+        
+        // Each 1-bit pairs up with each 0-bit to contribute 1 to the Hamming distance
+        totalDistance += countOnes * countZeros;
+    }
+    
+    return totalDistance;
+}
