@@ -1,0 +1,88 @@
+#include <stdbool.h>
+
+// Bit arrays to keep track of used numbers (1-9)
+int rows[9];
+int cols[9];
+int boxes[9];
+
+// Helper to find the correct 3x3 box index
+int getBoxIndex(int r, int c) {
+    return (r / 3) * 3 + (c / 3);
+}
+
+// Check if a digit can be safely placed
+bool isValid(int r, int c, int num) {
+    int mask = 1 << num;
+    int b = getBoxIndex(r, c);
+    
+    // If the bit is already set in row, col, or box, it's invalid
+    if ((rows[r] & mask) || (cols[c] & mask) || (boxes[b] & mask)) {
+        return false;
+    }
+    return true;
+}
+
+// Backtracking solver function
+bool solve(char** board, int r, int c) {
+    // If we reach row 9, the puzzle is solved
+    if (r == 9) return true;
+    
+    // Move to the next row if we reach the end of the current column
+    if (c == 9) return solve(board, r + 1, 0);
+    
+    // Skip cells that are already filled
+    if (board[r][c] != '.') return solve(board, r, c + 1);
+    
+    int b = getBoxIndex(r, c);
+    
+    // Try placing digits from 1 to 9
+    for (int num = 1; num <= 9; num++) {
+        if (isValid(r, c, num)) {
+            int mask = 1 << num;
+            
+            // Choose: Place number and update bitmasks
+            board[r][c] = num + '0';
+            rows[r] |= mask;
+            cols[c] |= mask;
+            boxes[b] |= mask;
+            
+            // Explore: Move to the next cell
+            if (solve(board, r, c + 1)) return true;
+            
+            // Unchoose: Backtrack if choice didn't lead to a solution
+            board[r][c] = '.';
+            rows[r] &= ~mask;
+            cols[c] &= ~mask;
+            boxes[b] &= ~mask;
+        }
+    }
+    
+    return false; // Triggers backtracking
+}
+
+void solveSudoku(char** board, int boardSize, int* boardColSize) {
+    // Initialize/clear global bit arrays for multiple execution instances
+    for (int i = 0; i < 9; i++) {
+        rows[i] = 0;
+        cols[i] = 0;
+        boxes[i] = 0;
+    }
+    
+    // Populate the initial bitmasks from the given board state
+    for (int r = 0; r < 9; r++) {
+        for (int c = 0; c < 9; c++) {
+            if (board[r][c] != '.') {
+                int num = board[r][c] - '0';
+                int mask = 1 << num;
+                int b = getBoxIndex(r, c);
+                
+                rows[r] |= mask;
+                cols[c] |= mask;
+                boxes[b] |= mask;
+            }
+        }
+    }
+    
+    // Start solving from top-left cell (0, 0)
+    solve(board, 0, 0);
+}
