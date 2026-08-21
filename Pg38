@@ -1,0 +1,77 @@
+#include <stdlib.h>
+
+// Structure for hash map entries
+typedef struct HashEntry {
+    int key;
+    int value;
+    struct HashEntry* next;
+} HashEntry;
+
+// Hash function
+int hash(int key, int size) {
+    int h = key % size;
+    return h < 0 ? h + size : h;
+}
+
+// Insert into hash map
+void insert(HashEntry** HashTable, int size, int key, int value) {
+    int index = hash(key, size);
+    HashEntry* newEntry = (HashEntry*)malloc(sizeof(HashEntry));
+    newEntry->key = key;
+    newEntry->value = value;
+    newEntry->next = HashTable[index];
+    HashTable[index] = newEntry;
+}
+
+// Search in hash map
+HashEntry* search(HashEntry** HashTable, int size, int key) {
+    int index = hash(key, size);
+    HashEntry* curr = HashTable[index];
+    while (curr != NULL) {
+        if (curr->key == key) {
+            return curr;
+        }
+        curr = curr->next;
+    }
+    return NULL;
+}
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* twoSum(int* nums, int numsSize, int target, int* returnSize) {
+    *returnSize = 2;
+    int* result = (int*)malloc(2 * sizeof(int));
+    
+    // Use an appropriate hash table size (usually a prime number near numsSize)
+    int tableSize = numsSize * 2;
+    HashEntry** HashTable = (HashEntry**)calloc(tableSize, sizeof(HashEntry*));
+    
+    for (int i = 0; i < numsSize; i++) {
+        int complement = target - nums[i];
+        HashEntry* entry = search(HashTable, tableSize, complement);
+        
+        if (entry != NULL) {
+            result[0] = entry->value;
+            result[1] = i;
+            
+            // Free allocated hash table memory before returning
+            for (int j = 0; j < tableSize; j++) {
+                HashEntry* curr = HashTable[j];
+                while (curr != NULL) {
+                    HashEntry* temp = curr;
+                    curr = curr->next;
+                    free(temp);
+                }
+            }
+            free(HashTable);
+            return result;
+        }
+        
+        insert(HashTable, tableSize, nums[i], i);
+    }
+    
+    // Free memory if no solution found (guaranteed to have one by constraints)
+    free(HashTable);
+    return NULL;
+}
