@@ -1,0 +1,44 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// 1. We must define this comparison function for qsort to work
+int compare(const void* a, const void* b) {
+    return (*(int*)a - *(int*)b);
+}
+
+int subarrayBitwiseORs(int* arr, int arrSize) {
+    if (arrSize == 0) return 0;
+
+    int* results = (int*)malloc(arrSize * 33 * sizeof(int));
+    int resSize = 0;
+    int leftBound = 0;
+
+    for (int i = 0; i < arrSize; i++) {
+        int rightBound = resSize;
+        results[resSize++] = arr[i];
+
+        for (int j = leftBound; j < rightBound; j++) {
+            int newOrValue = results[j] | arr[i];
+            if (results[resSize - 1] != newOrValue) {
+                results[resSize++] = newOrValue;
+            }
+        }
+        leftBound = rightBound;
+    }
+
+    // FIX: Added the 4th argument 'compare' here
+    qsort(results, resSize, sizeof(int), compare);
+
+    int distinctCount = 0;
+    if (resSize > 0) {
+        distinctCount = 1;
+        for (int i = 1; i < resSize; i++) {
+            if (results[i] != results[i - 1]) {
+                distinctCount++;
+            }
+        }
+    }
+
+    free(results);
+    return distinctCount;
+}
